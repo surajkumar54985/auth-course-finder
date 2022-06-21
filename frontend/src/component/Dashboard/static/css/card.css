@@ -1,0 +1,71 @@
+/* .Cards {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    width: 23%;
+    box-shadow: 0 0 4px 3px rgb(20, 124, 198);
+} */
+
+.Cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.Card {
+    box-shadow: 0 0 4px 3px rgb(20, 124, 198);
+    border-radius: 25px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 24rem;
+}
+
+.id {
+    border: 2px solid black;
+    display: flex;
+    border-radius: 5px;
+    width: 35%;
+    background-color: yellowgreen;
+    text-align: center;
+    color: rgb(19, 16, 233);;
+}
+
+.date {
+    color: #1c1fbb;
+    text-align: end;
+}
+.subhead {
+    color: black;
+    margin: 10px 0px 10px 10px;
+    font-size: small;
+    font-weight: bold;
+}
+
+.head {
+    color: rgb(214, 16, 16);
+    font-style: italic;
+    font-weight: 700;
+}
+
+.coursename {
+    color: #d63384;
+    margin-left: 8px;
+    font-weight: bold;
+    font-size: small;
+}
+
+.subject {
+    color: #0d6efd;;
+}
+
+.headid {
+    text-align: center;
+}
