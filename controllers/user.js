@@ -26,7 +26,7 @@ exports.fetchUser = (req, res, next) => {
     }
     if (olduser) {
       console.log("User Already Exist. Please Login");
-      return res.status(409).send("User Already Exist. Please Login");
+      return res.status(409).json({message : "User Already Exist. Please Login"});
     } else if (!olduser) {
       const newUser = new User({
         email: req.body.email,
@@ -43,6 +43,7 @@ exports.fetchUser = (req, res, next) => {
         })
         .catch((error) => {
           console.log(error);
+          res.json({message: "Error in registering new user"});
         });
     }
   });
@@ -58,7 +59,7 @@ exports.Login = (req, res, next) => {
     }
     if (!user) {
       console.log("Username does not exist");
-      return res.status(409).send("Username does not exist");
+      return res.status(409).json({message: "Incorrect Username"});
     }
     if (user) {
       const validPassword = bcrypt.compare(
@@ -71,7 +72,7 @@ exports.Login = (req, res, next) => {
           }
           if (!resp) {
             console.log("Wrong Password");
-            return res.send("Password is not correct");
+            return res.json({message : "Invalid Password"});
           } else if (resp) {
             // console.log("password matched");
             const token = jwt.sign(
@@ -83,7 +84,7 @@ exports.Login = (req, res, next) => {
             );
 
             // console.log(token);
-            res.status(200).json({message: 'token created',token});
+            res.status(200).json({message: 'LoggedIn Successfully',token});
           }
         }
       );
@@ -94,5 +95,5 @@ exports.Login = (req, res, next) => {
 
 exports.DashBoard = ((req,res) => {
   // console.log(req.body,'suraj');
-  res.status(200).json({message: 'dashboard ok!'});
+  res.status(200).json({message: 'Welcome'});
 });

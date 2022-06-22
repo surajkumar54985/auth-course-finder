@@ -1,6 +1,7 @@
 require('dotenv').config({path:'.env'});
 const bodyParser = require('body-parser');
 const express = require('express');
+const flash = require('connect-flash');
 
 const mongoose = require('mongoose');
 
@@ -13,6 +14,8 @@ const PORT = process.env.PORT || 8000;
 
 
 console.log('Hello world');
+
+app.use(flash());
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
