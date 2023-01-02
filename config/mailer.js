@@ -48,6 +48,8 @@ module.exports.sendConfirmationEmail = async (
 
 
     const accessToken = await oauth2Client.getAccessToken();
+
+    console.log(accessToken);
     
 
     const transport = nodemailer.createTransport({
@@ -86,6 +88,7 @@ module.exports.sendConfirmationEmail = async (
     
 
   } catch (error) {
+    console.log('Google error');
     console.log(error);
   }
 };
