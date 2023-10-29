@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const Admin = require("../models/admin");
 const Token = require("../models/token");
 const Course = require("../models/courses");
 const nodemailer = require("nodemailer");
@@ -7,27 +7,41 @@ const jwt = require("jsonwebtoken");
 const auth = require("../config/jwt");
 // const Mailer = require("../config/mailer");
 
-const { sendUserConfirmationEmail } = require("../config/mailer");
+const { sendAdminConfirmationEmail } = require("../config/mailer");
+const { sendCourseConfirmationEmail } = require("../config/mailer");
 const { response } = require("express");
 
-// var data = {
-//   email: "suraj1234@gmail.com",
-//   password: "12345",
-//   name: "Suraj Kumar",
-//   avatar: "...",
-// };
+exports.addCourse = (req, res, next) => {
+  console.log(req.body);
+  const adminid = req.body.admin;
+  const newCourse = new Course({
+    adminId: req.body.admin,
+    courseName: req.body.coursename,
+    pSubject: req.body.parentsub,
+    cSubject: req.body.childsub,
+    Provider: req.body.provider,
+    College: req.body.college,
+  });
+  Admin.findOne({ adminid }, (err, user) => {
+    if (err) {
+      console.log("error in finding user to send mail after adding course");
+      return;
+    }
+    if (user) {
+      newCourse.save().then((resp) => {
+        sendCourseConfirmationEmail(req.body.coursename, user.email);
+        return res
+        .status(200)
+        .json({ message: "New course registered successfully" });
+      }).catch((error) => {
+        console.log(error);
+        return res.json({ message: "Error in Adding new course" });
+      })
+    }
+  });
+};
 
-exports.courses = async (req,res,next) => {
-  try{
-    const course = await Course.find();
-    res.status(200).json(course);
-  }
-  catch(err) {
-    res.status(500).json({message: err.message});
-  }
-}
-
-exports.fetchUser = (req, res, next) => {
+exports.fetchAdmin = (req, res, next) => {
   var hash_password = (password) => {
     let salt = bcrypt.genSaltSync(10); // enter number of rounds, default: 10
     let hash = bcrypt.hashSync(password, salt);
@@ -36,7 +50,7 @@ exports.fetchUser = (req, res, next) => {
 
   const encryptedUserPassword = hash_password(req.body.password);
   const email = req.body.email;
-  User.findOne({ email }, (err, olduser) => {
+  Admin.findOne({ email }, (err, olduser) => {
     if (err) {
       console.log("error in finding user while signing up");
       return;
@@ -47,19 +61,19 @@ exports.fetchUser = (req, res, next) => {
         .status(409)
         .json({ message: "User Already Exist. Please Login" });
     } else if (!olduser) {
-      const newUser = new User({
+      const newAdmin = new Admin({
         email: req.body.email,
         password: encryptedUserPassword,
         name: req.body.name,
         avatar: "...",
       });
-      newUser
+      newAdmin
         .save()
         .then((data) => {
           const token = new Token({
-            userId: newUser._id,
+            userId: newAdmin._id,
             token: jwt.sign(
-              { user_id: newUser._id, email: newUser.email },
+              { user_id: newAdmin._id, email: newAdmin.email },
               process.env.TOKEN_KEY,
               {
                 expiresIn: "10000000d",
@@ -68,8 +82,11 @@ exports.fetchUser = (req, res, next) => {
           })
             .save()
             .then((res) => {
-
-              sendUserConfirmationEmail(newUser.name, newUser.email, res.token);
+              sendAdminConfirmationEmail(
+                newAdmin.name,
+                newAdmin.email,
+                res.token
+              );
             });
 
           // console.log(token.json());
@@ -79,7 +96,7 @@ exports.fetchUser = (req, res, next) => {
           // res.send("An Email sent to your account please verify");
           res
             .status(200)
-            .json({ message: "New user registered successfully", data: data });
+            .json({ message: "New admin registered successfully", data: data });
         })
         .catch((error) => {
           console.log(error);
@@ -89,28 +106,23 @@ exports.fetchUser = (req, res, next) => {
   });
 };
 
-
-
-exports.verifyUser = function (req, res, next) {
+exports.verifyAdmin = function (req, res, next) {
+  console.log("Check for verifyAdmin");
   Token.findOne({ token: req.params.token }, function (err, token) {
     // token is not found into database i.e. token may have expired
     if (!token) {
-      return res
-        .status(400)
-        .send({
-          msg: "Your verification link may have expired. Please click on resend for verify your Email.",
-        });
+      return res.status(400).send({
+        msg: "Your verification link may have expired. Please click on resend for verify your Email.",
+      });
     }
     // if token is found then check valid user
     else {
-      User.findOne({ _id: token.userId }, function (err, user) {
+      Admin.findOne({ _id: token.userId }, function (err, user) {
         // not valid user
         if (!user) {
-          return res
-            .status(401)
-            .send({
-              msg: "We were unable to find a user for this verification. Please SignUp!",
-            });
+          return res.status(401).send({
+            msg: "We were unable to find a admin for this verification. Please SignUp!",
+          });
         }
         // user is already verified
         else if (user.verified) {
@@ -140,59 +152,20 @@ exports.verifyUser = function (req, res, next) {
   });
 };
 
-// exports.confirmEmail = function (req, res, next) {
-//   Token.findOne({ token: req.params.token }, function (err, token) {
-//       // token is not found into database i.e. token may have expired
-//       if (!token){
-//           return res.status(400).send({msg:'Your verification link may have expired. Please click on resend for verify your Email.'});
-//       }
-//       // if token is found then check valid user
-//       else{
-//           User.findOne({ _id: token._userId, email: req.params.email }, function (err, user) {
-//               // not valid user
-//               if (!user){
-//                   return res.status(401).send({msg:'We were unable to find a user for this verification. Please SignUp!'});
-//               }
-//               // user is already verified
-//               else if (user.isVerified){
-//                   return res.status(200).send('User has been already verified. Please Login');
-//               }
-//               // verify user
-//               else{
-//                   // change isVerified to true
-//                   user.isVerified = true;
-//                   user.save(function (err) {
-//                       // error occur
-//                       if(err){
-//                           return res.status(500).send({msg: err.message});
-//                       }
-//                       // account successfully verified
-//                       else{
-//                         return res.status(200).send('Your account has been successfully verified');
-//                       }
-//                   });
-//               }
-//           });
-//       }
-
-//   });
-// };
-
 exports.resendLink = function (req, res, next) {
-  User.findOne({ email: req.body.email }, function (err, user) {
+  Admin.findOne({ email: req.body.email }, function (err, user) {
     // user is not found into database
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          message: "We were unable to find a user with that email. Make sure your Email is correct!",
-        });
+      return res.status(400).json({
+        message:
+          "We were unable to find a user with that email. Make sure your Email is correct!",
+      });
     }
     // user has been already verified
     else if (user.Verified) {
-      return res
-        .status(200)
-        .json({message:"This account has been already verified. Please log in."});
+      return res.status(200).json({
+        message: "This account has been already verified. Please log in.",
+      });
     }
     // send verification link
     else {
@@ -209,7 +182,6 @@ exports.resendLink = function (req, res, next) {
       })
         .save()
         .then((res) => {
-
           sendConfirmationEmail(user.name, user.email, res.token);
         });
 
@@ -226,9 +198,9 @@ exports.resendLink = function (req, res, next) {
   });
 };
 
-exports.Login = (req, res, next) => {
+exports.adminLogin = (req, res, next) => {
   const email = req.body.email;
-  User.findOne({ email }, (err, user) => {
+  Admin.findOne({ email }, (err, user) => {
     if (err) {
       console.log("error in finding username while Logging In");
       return;
@@ -239,11 +211,9 @@ exports.Login = (req, res, next) => {
     }
     if (!user.verified) {
       console.log("Account is not verified! Please verify your account...");
-      return res
-        .status(401)
-        .json({
-          message: "Account is not verified! Please verify your account...",
-        });
+      return res.status(401).json({
+        message: "Account is not verified! Please verify your account...",
+      });
     }
     if (user.verified) {
       const validPassword = bcrypt.compare(
@@ -259,6 +229,7 @@ exports.Login = (req, res, next) => {
             return res.json({ message: "Invalid Password" });
           } else if (resp) {
             // console.log("password matched");
+            AdminToken = user._id;
             const token = jwt.sign(
               { user_id: user._id, email: user.email },
               process.env.TOKEN_KEY,
@@ -268,7 +239,9 @@ exports.Login = (req, res, next) => {
             );
 
             // console.log(token);
-            res.status(200).json({ message: "LoggedIn Successfully", token });
+            res
+              .status(200)
+              .json({ message: "LoggedIn Successfully", token, AdminToken });
           }
         }
       );

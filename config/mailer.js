@@ -29,10 +29,9 @@ const REFRESH_TOKEN = process.env.SURAJ;
 //   return;
 // });
 
-module.exports.sendConfirmationEmail = async (
+module.exports.sendCourseConfirmationEmail = async (
   name,
-  email,
-  confirmationCode
+  email
 ) => {
   try {
     
@@ -46,10 +45,11 @@ module.exports.sendConfirmationEmail = async (
       refresh_token: REFRESH_TOKEN,
     });
 
+    console.log(`user`+user);
 
     const accessToken = await oauth2Client.getAccessToken();
 
-    console.log(accessToken);
+    console.log(`access token`+accessToken);
     
 
     const transport = nodemailer.createTransport({
@@ -68,6 +68,92 @@ module.exports.sendConfirmationEmail = async (
     });
     
 
+    // const mailOption = {
+    //   from: user,
+    //   to: email,
+    //   subject: "Please confirm your account",
+    //   html: `<h1>Email Confirmation</h1>
+    //                   <h2>Hello ${name}</h2>
+    //                   <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+    //                   <a href=https://selector-course.herokuapp.com/verify/${email}/${confirmationCode}> Click here</a>
+    //                   </div>`,
+    // };
+
+    const mailOption = {
+      from: user,
+      to: email,
+      subject: "Added your Course",
+      html: `<h1>Email Confirmation</h1>
+                      <h2>Hello ${name}</h2>
+                      <p>Thank you for Choosing us. It will reach to millions of people and will help many to learn.
+                      </div>`,
+    };
+    
+
+    transport.sendMail(mailOption, (err, res) => {
+      err ? console.log(`error`+err) : console.log(res);
+      transport.close();
+    });
+
+    
+
+  } catch (error) {
+    console.log('Google error');
+    console.log(error);
+  }
+};
+
+module.exports.sendAdminConfirmationEmail = async (
+  name,
+  email,
+  confirmationCode
+) => {
+  try {
+    
+    const oauth2Client = new OAuth2(
+      CLIENT_ID, // ClientID
+      CLIENT_SECERET, // Client Secret
+      "https://developers.google.com/oauthplayground" // Redirect URL
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: REFRESH_TOKEN,
+    });
+
+    console.log(`user`+user);
+
+    const accessToken = await oauth2Client.getAccessToken();
+
+    console.log(`access token`+accessToken);
+    
+
+    const transport = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: user,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECERET,
+        refreshToken: REFRESH_TOKEN,
+        accessToken: accessToken,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+    
+
+    // const mailOption = {
+    //   from: user,
+    //   to: email,
+    //   subject: "Please confirm your account",
+    //   html: `<h1>Email Confirmation</h1>
+    //                   <h2>Hello ${name}</h2>
+    //                   <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+    //                   <a href=https://selector-course.herokuapp.com/verify/${email}/${confirmationCode}> Click here</a>
+    //                   </div>`,
+    // };
+
     const mailOption = {
       from: user,
       to: email,
@@ -75,7 +161,83 @@ module.exports.sendConfirmationEmail = async (
       html: `<h1>Email Confirmation</h1>
                       <h2>Hello ${name}</h2>
                       <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
-                      <a href=https://selector-course.herokuapp.com/verify/${email}/${confirmationCode}> Click here</a>
+                      <a href=http://localhost:8000/admin/verify/${email}/${confirmationCode}> Click here</a>
+                      </div>`,
+    };
+    
+
+    transport.sendMail(mailOption, (err, res) => {
+      err ? console.log(err) : console.log(res);
+      transport.close();
+    });
+
+    
+
+  } catch (error) {
+    console.log('Google error');
+    console.log(error);
+  }
+};
+
+module.exports.sendUserConfirmationEmail = async (
+  name,
+  email,
+  confirmationCode
+) => {
+  try {
+    
+    const oauth2Client = new OAuth2(
+      CLIENT_ID, // ClientID
+      CLIENT_SECERET, // Client Secret
+      "https://developers.google.com/oauthplayground" // Redirect URL
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: REFRESH_TOKEN,
+    });
+
+    console.log(`user`+user);
+
+    const accessToken = await oauth2Client.getAccessToken();
+
+    console.log(`access token`+accessToken);
+    
+
+    const transport = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: user,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECERET,
+        refreshToken: REFRESH_TOKEN,
+        accessToken: accessToken,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+    
+
+    // const mailOption = {
+    //   from: user,
+    //   to: email,
+    //   subject: "Please confirm your account",
+    //   html: `<h1>Email Confirmation</h1>
+    //                   <h2>Hello ${name}</h2>
+    //                   <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+    //                   <a href=https://selector-course.herokuapp.com/verify/${email}/${confirmationCode}> Click here</a>
+    //                   </div>`,
+    // };
+
+    const mailOption = {
+      from: user,
+      to: email,
+      subject: "Please confirm your account",
+      html: `<h1>Email Confirmation</h1>
+                      <h2>Hello ${name}</h2>
+                      <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+                      <a href=http://localhost:8000/user/verify/${email}/${confirmationCode}> Click here</a>
                       </div>`,
     };
     

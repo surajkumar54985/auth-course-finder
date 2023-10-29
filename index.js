@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 
 const url = require('./config/mongoose')
 
-const user = require('./routes/user');
+// const user = require('./routes/user');
+const user = require('./routes/index');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -35,8 +36,9 @@ app.get('/', (req, res)=>{
     res.send("Welcome to root URL of Server");
 });
 
-app.use(user);
-
+// app.use(user);
+//use express router
+app.use('/' , require('./routes'));
 
 
 
