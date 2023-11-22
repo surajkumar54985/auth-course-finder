@@ -8,6 +8,7 @@ const auth = require("../config/jwt");
 // const Mailer = require("../config/mailer");
 
 const { sendUserConfirmationEmail } = require("../config/mailer");
+const { sendConfirmationEmail } = require("../config/mailer");
 const { response } = require("express");
 
 // var data = {

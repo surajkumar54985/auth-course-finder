@@ -179,6 +179,82 @@ module.exports.sendAdminConfirmationEmail = async (
   }
 };
 
+module.exports.sendConfirmationEmail = async (
+  name,
+  email,
+  confirmationCode
+) => {
+  try {
+    
+    const oauth2Client = new OAuth2(
+      CLIENT_ID, // ClientID
+      CLIENT_SECERET, // Client Secret
+      "https://developers.google.com/oauthplayground" // Redirect URL
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: REFRESH_TOKEN,
+    });
+
+    console.log(`user`+user);
+
+    const accessToken = await oauth2Client.getAccessToken();
+
+    console.log(`access token`+accessToken);
+    
+
+    const transport = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: user,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECERET,
+        refreshToken: REFRESH_TOKEN,
+        accessToken: accessToken,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+    
+
+    // const mailOption = {
+    //   from: user,
+    //   to: email,
+    //   subject: "Please confirm your account",
+    //   html: `<h1>Email Confirmation</h1>
+    //                   <h2>Hello ${name}</h2>
+    //                   <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+    //                   <a href=https://selector-course.herokuapp.com/verify/${email}/${confirmationCode}> Click here</a>
+    //                   </div>`,
+    // };
+
+    const mailOption = {
+      from: user,
+      to: email,
+      subject: "Please confirm your account",
+      html: `<h1>Email Confirmation</h1>
+                      <h2>Hello ${name}</h2>
+                      <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+                      <a href=http://localhost:8000/admin/verify/${email}/${confirmationCode}> Click here</a>
+                      </div>`,
+    };
+    
+
+    transport.sendMail(mailOption, (err, res) => {
+      err ? console.log(err) : console.log(res);
+      transport.close();
+    });
+
+    
+
+  } catch (error) {
+    console.log('Google error');
+    console.log(error);
+  }
+};
+
 module.exports.sendUserConfirmationEmail = async (
   name,
   email,

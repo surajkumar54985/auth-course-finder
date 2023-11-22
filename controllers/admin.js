@@ -9,11 +9,49 @@ const auth = require("../config/jwt");
 
 const { sendAdminConfirmationEmail } = require("../config/mailer");
 const { sendCourseConfirmationEmail } = require("../config/mailer");
+const { sendConfirmationEmail } = require("../config/mailer");
 const { response } = require("express");
+
+const { Kafka } = require('kafkajs');
+
+// Define your Kafka broker(s) - Replace with your actual broker(s) information
+const kafkaBrokers = ['localhost:9092'];
+
+// Create a Kafka instance
+const kafka = new Kafka({
+  clientId: 'your-producer-client',
+  brokers: kafkaBrokers,
+});
+
+// Create a producer instance
+const producer = kafka.producer();
+
+// Function to initialize the producer
+const initProducer = async () => {
+  await producer.connect();
+  console.log('Kafka producer is ready.');
+};
+
+// Function to produce messages to a Kafka topic
+const produceMessage = async (topic, messages) => {
+  try {
+    await producer.send({
+      topic,
+      messages: messages.map((message) => ({ value: JSON.stringify(message) })),
+    });
+    console.log('Message sent to Kafka:', messages);
+  } catch (error) {
+    console.error('Error sending message to Kafka:', error);
+  }
+};
 
 exports.addCourse = (req, res, next) => {
   console.log(req.body);
   const adminid = req.body.admin;
+  // Initialize the producer
+  initProducer();
+
+
   const newCourse = new Course({
     adminId: req.body.admin,
     courseName: req.body.coursename,
@@ -22,6 +60,16 @@ exports.addCourse = (req, res, next) => {
     Provider: req.body.provider,
     College: req.body.college,
   });
+
+  // Example: Send messages to a Kafka topic
+  const topic = 'test-topic';
+  const messages = [{ key: '1', value: 'Hello from Kafka producer!' , 
+  Course: newCourse
+}];
+
+  // Produce messages
+  produceMessage(topic, messages);
+
   Admin.findOne({ adminid }, (err, user) => {
     if (err) {
       console.log("error in finding user to send mail after adding course");
